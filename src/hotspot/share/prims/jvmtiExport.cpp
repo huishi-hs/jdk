@@ -2169,6 +2169,18 @@ jvmtiCompiledMethodLoadInlineRecord* create_inline_record(nmethod* nm) {
   return record;
 }
 
+// Returns a record containing JIT compile level information for the given nmethod
+jvmtiCompiledMethodLoadCompLevelRecord* create_comp_level_record(nmethod* nm) {
+  jvmtiCompiledMethodLoadCompLevelRecord* record =
+    (jvmtiCompiledMethodLoadCompLevelRecord*)NEW_RESOURCE_OBJ(jvmtiCompiledMethodLoadCompLevelRecord);
+  record->header.kind = JVMTI_CMLR_COMP_LEVEL;
+  record->header.next = NULL;
+  record->header.majorinfoversion = JVMTI_CMLR_MAJOR_VERSION_1;
+  record->header.minorinfoversion = JVMTI_CMLR_MINOR_VERSION_0;
+  record->level = nm->comp_level();
+  return record;
+}
+
 void JvmtiExport::post_compiled_method_load(nmethod *nm) {
   guarantee(!nm->is_unloading(), "nmethod isn't unloaded or unloading");
   if (JvmtiEnv::get_phase() < JVMTI_PHASE_PRIMORDIAL) {
@@ -2207,6 +2219,10 @@ void JvmtiExport::post_compiled_method_load(JvmtiEnv* env, nmethod *nm) {
 
   // Add inlining information
   jvmtiCompiledMethodLoadInlineRecord* inlinerecord = create_inline_record(nm);
+  // Add compile level information
+  jvmtiCompiledMethodLoadCompLevelRecord* levelrecord = create_comp_level_record(nm);
+  assert(inlinerecord->header.next == NULL, "inline record already has next");
+  inlinerecord->header.next = (_jvmtiCompiledMethodLoadRecordHeader*)levelrecord;
   // Pass inlining information through the void pointer
   JvmtiCompiledMethodLoadEventMark jem(thread, nm, inlinerecord);
   JvmtiJavaThreadEventTransition jet(thread);

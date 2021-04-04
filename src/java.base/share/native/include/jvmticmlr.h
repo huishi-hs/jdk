@@ -64,7 +64,8 @@ enum {
 
 typedef enum {
     JVMTI_CMLR_DUMMY       = 1,
-    JVMTI_CMLR_INLINE_INFO = 2
+    JVMTI_CMLR_INLINE_INFO = 2,
+    JVMTI_CMLR_COMP_LEVEL  = 3
 } jvmtiCMLRKind;
 
 /*
@@ -100,6 +101,14 @@ typedef struct _jvmtiCompiledMethodLoadInlineRecord {
   jint numpcs;          /* number of pc descriptors in this nmethod */
   PCStackInfo* pcinfo;  /* array of numpcs pc descriptors */
 } jvmtiCompiledMethodLoadInlineRecord;
+
+/*
+ * Record that contains JIT compilation level.
+ */
+typedef struct _jvmtiCompiledMethodLoadCompLevelRecord {
+  jvmtiCompiledMethodLoadRecordHeader header;  /* common header for casting */
+  jint level;          /* compile level */
+} jvmtiCompiledMethodLoadCompLevelRecord;
 
 /*
  * Dummy record used to test that we can pass records with different
